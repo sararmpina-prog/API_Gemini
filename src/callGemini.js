@@ -1,4 +1,4 @@
-
+import {db} from "./db.js"
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import { z } from "zod";
@@ -257,17 +257,29 @@ export async function callGeminiStreams(userPrompt, res) {
       contents: userPrompt,
     });
 
+    let fullResponse = ""
+   
     for await (const chunk of response) {
+      console.log("RAW CHUNK:", chunk);
+      console.log("tipo de chunk",typeof chunk)
       const text = chunk.text;
+      console.log("TEXT:", text);
       if (text && res) {
+        fullResponse += text
         res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
     }
+
+    
+
 
     if (res) {
       res.write('data: [DONE]\n\n');
       res.end();
     }
+
+    await saveMessage(userPrompt, fullResponse)
+
   } catch (error) {
     console.error('Gemini API Error:', error.message);
     if (res) {
@@ -275,4 +287,11 @@ export async function callGeminiStreams(userPrompt, res) {
       res.end();
     }
   }
+}
+
+async function saveMessage(prompt, response) {
+  return db.query(
+    'INSERT INTO chat_history (user_message, ai_response) VALUES (?, ?)',
+    [prompt, response]
+  );
 }

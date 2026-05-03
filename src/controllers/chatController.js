@@ -42,13 +42,16 @@ export const streamMessage = async (req, res) => {
         console.log("CONTROLLER do streamMessage")
 
         const text = req.query.message || "Olá, Gemini 3!";
+        console.log("TEST UTF8:", "ação, você, informação");
         
 
          // 1. Headers fundamentais para Streaming (SSE)
-            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Content-Type', 'text/event-stream', 'charset=utf-8');
             res.setHeader('Cache-Control', 'no-cache');
             res.setHeader('Connection', 'keep-alive');
             res.setHeader('X-Accel-Buffering', 'no'); 
+            res.flushHeaders?.();
+
 
         if (!text || typeof text !== 'string' || text.trim().length === 0) {
             return res.status(400).json({
