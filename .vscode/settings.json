@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.profiles.osx": {
+    "zsh": {
+      "path": "zsh",
+      "icon": "terminal"
+    }
+  },
+  "terminal.integrated.env.osx": {
+    "PATH": "/Users/sarapina/.nvm/versions/node/v25.9.0/bin:${env:PATH}"
+  },
+  "node.version": "25.9.0"
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug API Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/app.js",
+      "runtimeExecutable": "/Users/sarapina/.nvm/versions/node/v25.9.0/bin/node",
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ]
+}
