@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import {callGeminiSimples, clickupTaskSchema} from '../callGemini.js'
+import {callGeminiSimples} from '../callGemini.js'
+import { clickupTaskSchema } from '../schemas/clickUpTaskSchema.js'
 
 
 // AI Helper Functions with Gemini Integration
@@ -139,7 +140,7 @@ export async function summarizeTaskService(task) {
 
        try {
 
-         const response = await callGemini(prompt, temperatura, false);
+         const response = await callGeminiSimples(prompt);
 
          const cleanedResponse = response.replace(/```json\n?|```/g, '').trim();
 
@@ -285,4 +286,3 @@ export async function generateTaskBreakdownService(text) {
      }
 }
 
-//Tipo date 

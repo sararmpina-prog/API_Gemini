@@ -1,0 +1,22 @@
+export const comments = [
+  "Estou bloqueado na API, não percebo o erro",
+  "Muito trabalho esta sprint, estou atrasado",
+  "Consegui resolver o bug, tudo ok",
+  "A build continua a falhar",
+  "Não consigo avançar sem ajuda do backend",
+  "Tudo tranquilo hoje",
+  "Stress alto nesta tarefa",
+  "Já terminei a minha parte",
+  "Problemas com deploy outra vez",
+  "Sem blockers no momento",
+  "Estou sobrecarregado de tarefas",
+  "Código está confuso nesta parte",
+  "Boa progressão hoje",
+  "API continua instável",
+  "Preciso de suporte urgente",
+  "Tudo bem por aqui",
+  "Deadline muito apertado",
+  "Resolvido o problema de ontem",
+  "Ainda à espera de revisão",
+  "Sem problemas adicionais"
+];

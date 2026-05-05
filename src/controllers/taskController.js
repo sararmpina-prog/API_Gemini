@@ -6,7 +6,7 @@ export const createTaskFromText = async (req, res) => {
      
     try {
         console.log("CONTROLLER")
-        const { text } = req.body;
+        const text  = req.body.text;
 
         // Input validation
         if (!text || typeof text !== 'string' || text.trim().length === 0) {

@@ -1,20 +1,11 @@
-import {db} from "./db.js"
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
-import { z } from "zod";
+import {createSystemPrompt} from './prompts/systemPrompt.js'
+import { generateNames } from './utils/generateTemperature.js';
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-// 1. Definimos o Schema para a Tarefa do ClickUp
-// O Zod permite-nos adicionar .describe(), que o Gemini usa para entender o campo!
-export const clickupTaskSchema = z.object({
-  name: z.string().describe("Um título curto e profissional para a tarefa."),
-  description: z.string().describe("Um resumo detalhado do que precisa ser feito."),
-  priority: z.enum(["Urgente", "Alta", "Normal", "Baixa"]).describe("Nível de prioridade:  (Urgente),  (Alta),  (Normal),  (Baixa).").default("Normal"),
-  tags: z.array(z.string()).describe("Lista de categorias/etiquetas relevantes (ex: bug, feature, design).").nullish().default([]),
-  estimated_hours: z.number().nullish().optional().describe("Estimativa de tempo em horas, se mencionada.")
-});
-
-
+// History general starts off as a empty array
+let history = [];
 
 console.log("Chave carregada:", process.env.GEMINI_API_KEY ? "SIM" : "NÃO");
 // Check if API key is available
@@ -24,61 +15,16 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 
-
 // Initialize Gemini AI (same as working code)
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY 
 });
 
 
-// Can potentially pass a variable and change systemPrompt - not needed yet
-export function createSystemPrompt() {
-
-  return `Tu és um assistente para gestão de tarefas e usuários. 
-  Ajuda os utilizadores a gerir tarefas. 
-  Responde de forma simples e profissinal. 
-  Pede clarificação se necessário. 
-  Responde sempre em formato JSON válido sem texto extra.
-  Resposta em português de Portugal.`
-
-}
-
-
-// History general starts off as a empty array
-let history = [];
-
-
-
-//Experiment changes - not to be called 
-export function classifyPriority(){
-
-  console.log("A função da classificação de prior foi chamada")
-
-  return [
-  {role: "user", parts: [{text: "O site foi abaixo"}]},
-  {role: "model", parts: [{text: "{\"priority\": \"High\", \"tags\" : \"Bug\"}"}]},
-
-  {role: "user", parts: [{text: "Gostava de mudar o botão"}]},
-  {role: "model", parts: [{text: "{\"priority\": \"Medium\", \"tags\" : \"UI Enhancement\"}"}]},
-
-  {role: "user", parts: [{text: "Gostava de trocar o favicon"}]},
-  {role: "model", parts: [{text: "{\"priority\": \"Low\", \"tags\" : \"UI Enhancement\"}"}]},
- ]
-
-}
-
-
-
-//GenerateNames - submit temperature level
-export function generateNames(temperatura){
-
- return temperatura
-}
-
-
 // Gemini API helper function simples
-export async function callGeminiSimples(userPrompt, temperatura = 0, includeThoughts) {
+export async function callGeminiSimples(userPrompt, { temperatura = 0.2, includeThoughts = false, schema = clickupTaskSchema } = {}) {
 
+  
 try {    
 
     const response = await ai.models.generateContent({
@@ -87,20 +33,42 @@ try {
         config: {
           systemInstruction: createSystemPrompt(), 
           responseMimeType: "application/json",
-          responseJsonSchema: zodToJsonSchema(clickupTaskSchema),
+          responseJsonSchema: zodToJsonSchema(schema),
           temperature: generateNames(temperatura), 
           ...(includeThoughts && {
           thinkingConfig: {
             includeThoughts: true,
-            thinkingBudget: 1024,
+            thinkingBudget: 520,
           }
         })
       }
     });
 
 
-    return response.candidates[0].content.parts[0].text
+    const parts = response.candidates?.[0]?.content?.parts || [];
 
+    console.log(JSON.stringify(response, null, 2));
+
+    let thoughts = null;
+    let text = null;
+
+     // Se houver mais de uma parte, a primeira é o pensamento e a última é a resposta final
+    if (parts.length > 1) {
+        thoughts = parts[0]?.text; // Captura o processo de pensamento
+        text = parts[parts.length - 1]?.text; // Captura o JSON/texto final
+    } else {
+        text = parts[0]?.text; // Captura apenas o texto se includeThoughts for false
+    }
+
+    const parsed = JSON.parse(text);
+
+    console.log("thoughts",thoughts)
+    console.log("text",text)
+      // Retorna ambos em um formato estruturado
+    return { 
+        thoughts, 
+        text 
+    };
 
 } catch (error) {
 
@@ -112,7 +80,7 @@ try {
 
 
 // Gemini API helper function simples
-export async function callGeminiWithHistory(userPrompt, temperatura = 0, includeThoughts) {
+export async function callGeminiWithHistory(userPrompt, temperatura = 1, includeThoughts) {
 
 try {    
 
@@ -205,7 +173,7 @@ async function summarizeHistory() {
 
 // Public wrapper used by other modules in the project.
 // By default it calls the simple version; pass useHistory=true to use the history-aware one.
-export async function callGemini(userPrompt, temperatura = 0.5, includeThoughts = false, useHistory = false) {
+export async function callGemini(userPrompt, temperatura = 0.2, includeThoughts = false, useHistory = false) {
   if (useHistory) {
     return callGeminiWithHistory(userPrompt, temperatura, includeThoughts);
   }
@@ -213,6 +181,49 @@ export async function callGemini(userPrompt, temperatura = 0.5, includeThoughts 
   return callGeminiSimples(userPrompt, temperatura, includeThoughts);
 }
 
+
+export async function callGeminiStreams(userPrompt, res) {
+  try {
+    // Use the global ai instance (same as working code)
+    const response = await ai.models.generateContentStream({
+      model: "gemini-3-flash-preview",
+      contents: userPrompt,
+      config: {
+        temperature: 1
+      }
+    });
+
+    let fullResponse = ""
+   
+    for await (const chunk of response) {
+      console.log("RAW CHUNK:", chunk);
+      console.log("tipo de chunk",typeof chunk)
+      const text = chunk.text;
+      console.log("TEXT:", text);
+      if (text && res) {
+        fullResponse += text
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+    }
+
+    
+
+
+    if (res) {
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
+
+    return fullResponse
+
+  } catch (error) {
+    console.error('Gemini API Error:', error.message);
+    if (res) {
+      res.write(`data: ${JSON.stringify({ error: "Erro na comunicação com Gemini" })}\n\n`);
+      res.end();
+    }
+  }
+}
 
 //callGemini for streams!
 /*export async function callGeminiStreams(userPrompt, res) {
@@ -247,51 +258,3 @@ try {
   }
 
 }*/
-
-
-export async function callGeminiStreams(userPrompt, res) {
-  try {
-    // Use the global ai instance (same as working code)
-    const response = await ai.models.generateContentStream({
-      model: "gemini-3-flash-preview",
-      contents: userPrompt,
-    });
-
-    let fullResponse = ""
-   
-    for await (const chunk of response) {
-      console.log("RAW CHUNK:", chunk);
-      console.log("tipo de chunk",typeof chunk)
-      const text = chunk.text;
-      console.log("TEXT:", text);
-      if (text && res) {
-        fullResponse += text
-        res.write(`data: ${JSON.stringify({ text })}\n\n`);
-      }
-    }
-
-    
-
-
-    if (res) {
-      res.write('data: [DONE]\n\n');
-      res.end();
-    }
-
-    await saveMessage(userPrompt, fullResponse)
-
-  } catch (error) {
-    console.error('Gemini API Error:', error.message);
-    if (res) {
-      res.write(`data: ${JSON.stringify({ error: "Erro na comunicação com Gemini" })}\n\n`);
-      res.end();
-    }
-  }
-}
-
-async function saveMessage(prompt, response) {
-  return db.query(
-    'INSERT INTO chat_history (user_message, ai_response) VALUES (?, ?)',
-    [prompt, response]
-  );
-}
