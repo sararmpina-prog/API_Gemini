@@ -1,11 +1,13 @@
-import {getHistoryService, streamMessageService, streamSummaryService, classifyBugsService, createPlannerService} from "../services/chatService.js";
+import {sendPromptService, streamMessageService, streamSummaryService, classifyBugsService, createPlannerService} from "../services/chatService.js";
 
-//post - userPrompt to get history 
-export const getHistory = async (req, res) => {
+
+
+//post - userPrompt  
+export const sendPrompt = async (req, res) => {
      
     try {
-        console.log("CONTROLLER do getHistory")
-        const  text  = req.body.text;
+        console.log("CONTROLLER do sendPrompt")
+        const  {text}  = req.body;
 
         // Input validation
         if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -16,12 +18,12 @@ export const getHistory = async (req, res) => {
         }
 
 
-        const history = await getHistoryService(text);
-        console.log("O histórico é", history)
+        const result = await sendPromptService(text);
+        console.log("A resposta ao prompt é", result)
 
         res.status(201).json({
             success: true,
-            data: history
+            data: result
         });
 
     } catch (error) {
@@ -32,6 +34,7 @@ export const getHistory = async (req, res) => {
         });
     }
 };    
+
 
 
 

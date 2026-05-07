@@ -1,8 +1,10 @@
 import 'dotenv/config';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import {createSystemPrompt} from './prompts/systemPrompt.js'
 import { generateNames } from './utils/generateTemperature.js';
+import { setTaskCreationFunctionDeclaration } from './functionDeclarations/setTaskCreationFunctionDeclaration.js';
 import { zodToJsonSchema } from "zod-to-json-schema";
+import {setTaskCreation} from './servicesDeclarations/servicesDeclarationsTasks.js'
 
 // History general starts off as a empty array
 let history = [];
@@ -225,36 +227,52 @@ export async function callGeminiStreams(userPrompt, res) {
   }
 }
 
-//callGemini for streams!
-/*export async function callGeminiStreams(userPrompt, res) {
 
-try {    
 
-    const result = await ai.models.generateContentStream({
-       model: "gemini-3-flash-preview",
-    contents: "Explain how AI works", 
+
+//Generation config
+const config = {
+    systemInstruction: createSystemPrompt(), 
+    tools: [ {
+        functionDeclarations: [setTaskCreationFunctionDeclaration]
+    }]
+}
+
+
+export async function callGeminiWithFunctionDefinition(userPrompt) {
+
+   history.push({
+      role: "user",
+      parts: [{ text: userPrompt }]
     });
 
-    let chunkText = ''; 
 
-    for await (const chunk of result.stream) {
-      // Na nova SDK, o acesso ao texto é direto através de propriedades ou do método text()
-      chunkText += chunk.text();
+  try {
+      const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: history,
+          config: config
+      })
 
-    }
+      console.log(response.functionCalls[0])
 
-    if (chunkText) {
-      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+      const create_task_call = response.functionCalls[0]
+
+      let result;
+      if (create_task_call === 'set_task_creation') {
+      result = setTaskCreation(create_task_call.args.name, create_task_call.args.description, create_task_call.args.priority, create_task_call.args.tags, create_task_call.args.estimated_hours)
+      console.log('Function execution result: ${JSON.stringify(result)}')
       }
 
-      console.log(chunkText)
-      return chunkText
+      return result
 
-    } catch (error) {
+  } catch (error) {
+      console.error('Gemini API Error:', error.response?.data || error);
 
-    console.error('Gemini API Error:', error.response?.data || error);
-
-    throw new Error('Failed to call Gemini API');
+      throw new Error('Failed to call Gemini API');
   }
+  
+}
 
-}*/
+
+

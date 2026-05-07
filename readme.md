@@ -132,3 +132,24 @@ Now for the `week_plan` itself. Each object will represent a day. The format wil
 So, for Monday I'll have "segunda", tasks will be ["Estudar React", "Entregar o logo"] and time is "manhã" since this is when I'll start with React. I understand the JSON format shows only one time for the day, but I've noted that the logic needs one time for each task in the task array. The output will show that.
 
 Now, all I need to do is generate the JSON output, with each day represented correctly. I am ready to generate the response.
+
+
+
+
+
+// Send request with function declarations
+//   const response = await ai.models.generateContent({
+//     model: "gemini-3-flash-preview",
+//     contents: contents,
+//     config: config
+// });
+
+// console.log(response.functionCalls[0])
+
+// const create_task_call = response.functionCalls[0]
+
+// let result;
+// if (create_task_call === 'set_task_creation') {
+//   result = setTaskCreation(create_task_call.args.name, create_task_call.args.description, create_task_call.args.priority, create_task_call.args.tags, create_task_call.args.estimated_hours)
+//   console.log('Function execution result: ${JSON.stringify(result)}')
+// }

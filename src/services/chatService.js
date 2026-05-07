@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import {callGeminiSimples, callGeminiStreams, callGeminiWithHistory} from '../callGemini.js'
+import {callGeminiSimples, callGeminiStreams, callGeminiWithFunctionDefinition} from '../callGemini.js'
 import {sentimentSchema } from '../schemas/sentimentSchema.js';
 import { plannerSchema } from '../schemas/plannerSchema.js';
 import {db} from "../db.js"
@@ -10,19 +10,16 @@ console.log('API Key in service:', process.env.GEMINI_API_KEY ? 'LOADED' : 'NOT 
 
 
 // Requesting history from chatbot
-export async function getHistoryService(text) {
+export async function sendPromptService(text) {
     
-    let prompt = text
-      
+   console.log("estou no send prompt service")   
     try {
 
-      const response = await callGeminiWithHistory(prompt);
+      const response = await callGeminiWithFunctionDefinition(text);
 
-      const cleanedResponse = response.replace(/```json\n?|```/g, '').trim();
+      console.log('Gemini Response:', response);
 
-      console.log('Gemini Response:', cleanedResponse);
-
-      return JSON.parse(cleanedResponse);
+      return JSON.parse(response);
 
   } catch (error) {
       console.error('Error in getHistoryService:', error);
@@ -30,6 +27,14 @@ export async function getHistoryService(text) {
       throw new Error('Failed to obtain chatbot history');
   }
 }
+
+
+
+
+
+
+
+
 
 
 //GET - Get stream message from AI
@@ -178,7 +183,7 @@ export async function createPlannerService(text) {
 
       console.log('Gemini Response:', response);
 
-      const cleanedResponse = response.text.replace(/```json\n?|```/g, '').trim();
+      const cleanedResponse = response.textreplace(/```json\n?|```/g, '').trim();
 
       console.log("resultado =", cleanedResponse)
       
