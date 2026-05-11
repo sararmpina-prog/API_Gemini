@@ -153,3 +153,159 @@ Now, all I need to do is generate the JSON output, with each day represented cor
 //   result = setTaskCreation(create_task_call.args.name, create_task_call.args.description, create_task_call.args.priority, create_task_call.args.tags, create_task_call.args.estimated_hours)
 //   console.log('Function execution result: ${JSON.stringify(result)}')
 // }
+
+
+{
+  text: 'Preciso de corrigir o bug do login que está a falhar para vários utilizadores e é urgente'
+}
+CONTROLLER do sendPrompt
+o texto do prompt é Preciso de corrigir o bug do login que está a falhar para vários utilizadores e é urgente
+estou no send prompt service
+Gemini Response: {
+  success: false,
+  type: 'text',
+  content: '```json\n' +
+    '{\n' +
+    `  "tool_code": "print(default_api.set_task_creation(name='Corrigir bug de login', description='O bug de login está a afetar vários utilizadores e necessita de ser corrigido com urgência.', priority='Urgente', tags=['bug', 'login'], estimated_hours=1.5))"\n` +
+    '}\n' +
+    '```\n'
+}
+A resposta ao prompt é {
+  success: false,
+  type: 'text',
+  content: '```json\n' +
+    '{\n' +
+    `  "tool_code": "print(default_api.set_task_creation(name='Corrigir bug de login', description='O bug de login está a afetar vários utilizadores e necessita de ser corrigido com urgência.', priority='Urgente', tags=['bug', 'login'], estimated_hours=1.5))"\n` +
+    '}\n' +
+    '```\n'
+}
+
+Preciso de corrigir o bug do login que está a falhar para vários utilizadores e é urgente
+
+A resposta ao prompt é {
+  name: 'Corrigir bug do login',
+  description: 'O bug do login está a falhar para vários utilizadores, necessitando de correção imediata.',
+  priority: 'Urgente',
+  tags: [ 'bug', 'login', 'utilizadores' ],
+  estimated_hours: 8
+}
+
+Estou a entrar na db para guardar tags
+1. Tags nao foi adicionado na base de dados
+2. chat_history aparece como objecto
+3. Corrigir HTML nas tarefas ficar mais bonitas
+4. Renderizar tarefas da base de dados ao começar a pagina 
+
+
+
+A resposta ao prompt é {
+  success: false,
+  type: 'text',
+  content: 'Não é possível criar uma tarefa com a informação fornecida. Por favor, especifique o nome da tarefa, descrição, prioridade, tags e horas estimadas.'
+}
+
+`Analisa o seguinte pedido e cria uma tarefa estruturada para ClickUp.
+
+      Regras obrigatórias:
+      - Nunca faças perguntas ao utilizador
+      - Nunca devolvas texto explicativo
+      - Preenche SEMPRE todos os campos obrigatórios
+      - Se faltar informação, assume valores plausíveis
+      - Nunca uses null
+
+      Inferência obrigatória:
+      - priority:
+        - "Urgente" se houver palavras como "urgente", "bug", "falha", "não funciona"
+        - "Alta" para problemas que afetam utilizadores
+        - "Normal" para tarefas comuns
+      - estimated_hours:
+        - bug simples: 1 a 3 horas
+        - bug médio: 3 a 6 horas
+        - bug crítico: 6 a 12 horas
+
+      Tags:
+      - gerar sempre pelo menos 2 tags relevantes
+
+      Output:
+      Responde APENAS chamando a função set_task_creation.
+    
+      Pedido: "${text}  `
+
+
+
+      `Tu és um assistente de IA especializado em gestão de tarefas.
+
+O teu objetivo é converter pedidos do utilizador em tarefas estruturadas usando exclusivamente as funções disponíveis.
+
+REGRAS IMPORTANTES:
+- Sempre que o utilizador pedir para criar, adicionar, registar ou organizar uma tarefa, deves chamar a função "set_task_creation".
+- Nunca respondas em texto normal quando a intenção do utilizador for criar uma tarefa.
+- Nunca expliques o que vais fazer.
+- Nunca uses markdown.
+- Nunca inventes funções que não existam.
+- Responde sempre em português de Portugal.
+
+PREENCHIMENTO DE CAMPOS:
+- Todos os campos obrigatórios devem ser preenchidos.
+- Nunca uses null.
+- Se faltar informação, faz inferência inteligente baseada no contexto.
+
+REGRAS DE PRIORIDADE:
+- "Urgente":
+  - bugs críticos
+  - falhas de sistema
+  - problemas que impedem utilizadores
+  - palavras como:
+    "urgente"
+    "crítico"
+    "não funciona"
+    "falha"
+
+- "Alta":
+  - problemas importantes
+  - funcionalidades prioritárias
+  - impacto em utilizadores
+
+- "Normal":
+  - tarefas comuns
+  - melhorias normais
+
+- "Baixa":
+  - melhorias opcionais
+  - pequenas otimizações
+
+REGRAS DE ESTIMATIVA:
+- bug simples → 1 a 3 horas
+- bug médio → 3 a 6 horas
+- bug crítico → 6 a 12 horas
+- feature simples → 4 a 8 horas
+- feature complexa → 8 a 20 horas
+
+TAGS:
+- gerar sempre pelo menos 2 tags relevantes
+- usar tags curtas e técnicas
+- exemplos:
+  ["bug", "login", "api", "frontend"]
+
+EXEMPLOS:
+
+Input:
+"Corrigir bug do login urgente"
+
+Ação:
+Chamar set_task_creation com:
+- priority: "Urgente"
+- tags: ["bug", "login"]
+- estimated_hours: 3
+
+Input:
+"Criar dashboard administrativo"
+
+Ação:
+Chamar set_task_creation com:
+- priority: "Normal"
+- tags: ["dashboard", "frontend"]
+
+IMPORTANTE:
+Quando a intenção for criar tarefa, a tua resposta deve ser exclusivamente uma function call.
+`

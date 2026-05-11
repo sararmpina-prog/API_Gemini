@@ -1,3 +1,4 @@
+import {db} from "../db.js"
 
  export async function setTaskCreation(name, description, priority, tags, estimated_hours) {
     console.log("💡 Executando função real da criação de tarefas...");
@@ -16,21 +17,21 @@
 }
 
 async function saveTaskDb(task) {
-  return db.query(
+  console.log("Estou a entrar na db para guardar task")
+  await db.query(
     'INSERT INTO tasks (name, description, priority, estimated_hours) VALUES (?, ?, ?, ?)',
     [task.name, task.description, task.priority, task.estimated_hours]
   );
 }
 
 async function saveTagDb(task) {
-
-  for (let i =0; i < (task.tag.length); i++) {
-    return db.query(
-    'INSERT INTO tags (name) VALUES (?)',
-    [task.tags]
+console.log("Estou a entrar na db para guardar tags")
+  for (let i =0; i <= (task.tags.length); i++) {
+    await db.query(
+    'INSERT IGNORE INTO tags (name) VALUES (?)',
+    [task.tags[i]]
   );
   }
-
 }
 
 
