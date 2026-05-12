@@ -26,7 +26,7 @@ export async function sendPromptService(text) {
   } catch (error) {
       console.error('Error in sendPromptService:', error);
     
-      throw new Error('Failed to obtain chatbot history');
+      throw error;
   }
 }
 

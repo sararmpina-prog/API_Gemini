@@ -72,6 +72,17 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
             console.log(`🔁 STEP ${step}`);
             console.log("Funções pedidas pelo modelo:");
 
+            const functionCalls =
+              currentResponse?.candidates?.[0]?.content?.parts
+                ?.filter(p => p.functionCall)
+                ?.map(p => p.functionCall) || [];
+
+            if (!functionCalls.length) {
+              break;
+            }
+
+            console.log(`🔁 STEP ${step}`);
+
              // Mostrar chamadas
             currentResponse.functionCalls.forEach(fn => {
               console.log(`➡️ ${fn.name}`, fn.args);
@@ -121,6 +132,8 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
                   response:  fr.response  ?? {}
                 }
               }))
+
+              
             };
 
             // 👇 pedir próxima resposta ao Gemini
@@ -132,7 +145,8 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
                 ],
                 config: config
               });
-
+              step++;
+            
           console.log("currentResponse", currentResponse)
         // 👇 resposta final texto
         const finalText =
