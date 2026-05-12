@@ -19,6 +19,10 @@ parameters: {
           type: Type.STRING,
           enum: ["Urgente", "Alta", "Normal", "Baixa"],
           description: 'Priority level: Urgent, High, Normal, Low'
+        },
+        space: {
+          type: Type.STRING,
+          description: 'Organizational space or category where the task should be created. (example: work, studies, personal)'
         },    
         tags: {
           type: Type.ARRAY,
@@ -30,8 +34,18 @@ parameters: {
         estimated_hours: {
           type: Type.NUMBER,
           description: 'Expected time in hours'
-        }
+        },
+        assignee: {
+          type: Type.STRING,
+          description: `Person responsible for the task.
+              Use the person's name if explicitly mentioned by the user.
+              Otherwise, leave it empty. `
+        },
+        dueDate: {
+          type: Type.STRING,
+          description: ` Task due date. Use the format: YYYY-MM-DD. Only add if explicitly told a due date`
+        },
           },
-          required: ['name', 'description', 'priority', 'tags', 'estimated_hours'],
+          required: ['name', 'description', 'priority'],
     }
 }; 

@@ -1,8 +1,12 @@
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import {createSystemPrompt} from './prompts/systemPrompt.js'
-import { setTaskCreationFunctionDeclaration } from './functionDeclarations/setTaskCreationFunctionDeclaration.js';
-import {setTaskCreation} from './servicesDeclarations/servicesDeclarationsTasks.js'
+import {setTaskCreationFunctionDeclaration } from './functionDeclarations/setTaskCreationFunctionDeclaration.js';
+import {setTaskDeleteFunctionDeclaration} from './functionDeclarations/setTaskDeleteFunctionDeclaration.js'
+import {setTaskUpdateFunctionDeclaration} from './functionDeclarations/setTaskUpdateFunctionDeclaration.js'
+import {setTaskCreation} from './servicesDeclarations/taskCreation.js'
+import {setTaskDelete} from './servicesDeclarations/taskDelete.js'
+import {setTaskUpdate} from './servicesDeclarations/taskUpdate.js'
 
 // History general starts off as a empty array
 let history = [];
@@ -21,110 +25,328 @@ const ai = new GoogleGenAI({
 });
 
 
-console.log("Histórico da conversa é", history)
-
 export async function callGeminiWithFunctionDefinition(userPrompt) {
 
-    //Generation config with function declaration
-    const config = {
-        systemInstruction: createSystemPrompt(), 
-        tools: [ {
-            functionDeclarations: [setTaskCreationFunctionDeclaration]
-        }]
-    }
+     const config = {
 
-    //Configure user prompt
-    history.push(
-      {
-        role: "user",
-        parts: [{ text: userPrompt }]
+        systemInstruction: createSystemPrompt(),
+
+        tools: [
+            {
+                functionDeclarations: [
+                    setTaskCreationFunctionDeclaration,
+                    setTaskDeleteFunctionDeclaration
+                ]
+            }
+        ],
+
+        toolConfig: {
+            functionCallingConfig: {
+                mode: 'AUTO'
+            }
+        }
+    }; 
+
+      history.push({
+          role: "user",
+          parts: [{ text: userPrompt }]
+      });
+
+      if (history.length > 30) {
+        history = history.slice(-10);
       }
-    )
 
-  console.log("Histórico da conversa é deppois do primeiro push", history)
-  console.log("Histórico:", JSON.stringify(history, null, 2))
+    try {
+
+        let currentResponse = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: history,
+            config: config
+        });
+      
+        let step = 1;
+        const MAX_STEPS = 5;
+
+        while (currentResponse.functionCalls?.length && step <= MAX_STEPS) {
+
+            console.log(`🔁 STEP ${step}`);
+            console.log("Funções pedidas pelo modelo:");
+
+             // Mostrar chamadas
+            currentResponse.functionCalls.forEach(fn => {
+              console.log(`➡️ ${fn.name}`, fn.args);
+            });
+
+           
+              /**
+   * ================================
+   * 5. EXECUTAR FUNÇÕES (SIMULAÇÃO)
+   * ================================
+   */
+        const functionResults = await Promise.all(currentResponse.functionCalls.map(async (fn) => {
+          let result;
+
+          switch (fn.name) {
+            case 'set_task_creation':
+              result = await setTaskCreation(fn.args);
+              break;
+
+            case 'set_task_delete':
+              result = await setTaskDelete(fn.args.id);
+              break;
+
+            case 'set_task_update':
+            result = await setTaskUpdate(fn.args);
+            break;
+
+            default:
+              result = { error: 'Unknown function' };
+          }
+
+          console.log(`✅ Executada: ${fn.name}`, result);
+
+          return {
+            name: fn.name,
+            response: result ?? {}
+          };
+        }));
+              
+
+            // 👇 adicionar function responses ao histórico
+            const toolMessage = {
+              role: "tool",
+              parts: functionResults.map(fr => ({
+                functionResponse: {
+                  name: fr.name,
+                  response:  fr.response  ?? {}
+                }
+              }))
+            };
+
+            // 👇 pedir próxima resposta ao Gemini
+           currentResponse = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: [
+                  ...history,
+                  toolMessage
+                ],
+                config: config
+              });
+
+          console.log("currentResponse", currentResponse)
+        // 👇 resposta final texto
+        const finalText =
+            currentResponse?.candidates?.[0]
+            ?.content?.parts?.[0]?.text;
+
+          console.log("finalText", finalText)
+
+        if (finalText) {
+
+            history.push({
+                role: "model",
+                parts: [{ text: finalText }]
+            });
+        }
+
+        return {
+            success: true,
+            type: "text",
+            content: finalText || "Sem resposta"
+        };
+      }
+    } catch (error) {
+
+        console.error(
+            "Gemini API Error:",
+            error.response?.data || error
+        );
+
+        throw new Error(
+            "Failed to call Gemini API"
+        );
+    }
+  }
+
+
+
+
+
+// export async function callGeminiWithFunctionDefinition(userPrompt) {
+
+//     //Generation config with function declaration
+//     const config = {
+//         systemInstruction: createSystemPrompt(), 
+//         tools: [ {
+//             functionDeclarations: [setTaskCreationFunctionDeclaration]
+//         }]
+//     }
+
+//     //Summarize - not good with functionTools
+//     //  if (history.length > 20) {
+//     //   await summarizeHistory();
+//     // }
+
+//     // if (history.length > 30) {
+
+//     //   history = history.slice(-10);
+
+//     // }
+
+//     //Configure user prompt
+//     history.push(
+//       {
+//         role: "user",
+//         parts: [{ text: userPrompt }]
+//       }
+//     )
+
+//   console.log("Histórico da conversa é deppois do primeiro push", history)
+//   console.log("Histórico:", JSON.stringify(history, null, 2))
+
+//   try {
+//     const response = await ai.models.generateContent({
+//       model: "gemini-2.5-flash-lite",
+//       contents: history,
+//       config: config
+//     });
+
+    
+
+//     const candidate = response?.candidates?.[0];
+//     console.log("candidate", candidate)
+
+//     const functionCall = candidate?.content?.parts?.find(
+//       p => p.functionCall
+//     )?.functionCall;
+
+//     console.log("functionCall:", functionCall);
+
+//     // ❌ Não houve function call
+//     if (!functionCall) {
+//       const text = candidate?.content?.parts?.[0]?.text;
+//       history.push( {
+//         role: "model",
+//         parts: [{ text }]
+//       })
+//       console.log("Histórico da conversa no fim é", history)
+//       console.log("Histórico no !functionCall:", JSON.stringify(history, null, 2))
+//       return {
+//         success: false,
+//         type: "text",
+//         content: candidate?.content?.parts?.[0]?.text || "Sem resposta"
+//       };
+//     }
+
+//     // adicionar function call ao histórico
+//     history.push({
+//       role: "model",
+//       parts: [{
+//         functionCall
+//       }]
+//     });
+
+
+//     let result;
+//     const tool_call = response.functionCalls?.[0]
+//     if (functionCall) {
+//       if (functionCall.name === "set_task_creation") {
+//         console.log("functionCall[0]", tool_call)
+//         result = await setTaskCreation(
+//           functionCall.args.name,
+//           functionCall.args.description,
+//           functionCall.args.priority,
+//           functionCall.args.tags,
+//           functionCall.args.estimated_hours, 
+//           functionCall.args.assignee ?? null,
+//           functionCall.args.dueDate ?? null,
+//           functionCall.args.space ?? null
+//         )
+
+//           console.log(`Execução da função é ${JSON.stringify(result)}`)   
+//       }
+//     }
+    
+//     const function_response_part = {
+//       name: tool_call.name,
+//       response: {result},
+//       id: tool_call.id
+//     }
+
+    
+//     history.push({role: 'tool', parts: [{functionResponse: function_response_part}]})
+
+//     const final_response = await ai.models.generateContent({
+//         model: "gemini-2.5-flash-lite",
+//         contents: history,
+//         config: config
+//     });
+
+//     console.log("final_response.text =", final_response?.candidates?.[0]?.content?.parts?.[0]?.text)
+
+//     console.log("Histórico da conversa no fim é", history)
+//     console.log("Histórico:", JSON.stringify(history, null, 2))  
+
+//     return {
+//         success: true,
+//         type: "text",
+//         content:
+//           final_response?.candidates?.[0]?.content?.parts?.[0]?.text
+//       };
+
+    
+//   } catch (error) {
+//     console.error('Gemini API Error:', error.response?.data || error);
+//     throw new Error('Failed to call Gemini API');
+//   }
+// }
+
+
+// SummaryHistory to be called in callGemini with history
+async function summarizeHistory() {
 
   try {
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
-      contents: history,
-      config: config
+      contents: [
+        ...history,
+        {
+          role: "user",
+          parts: [{
+            text: `
+              Resume a conversa mantendo:
+
+              - intenção atual do utilizador
+              - tarefas em criação
+              - perguntas pendentes
+              - contexto necessário para continuar workflows
+              - dados importantes já fornecidos
+
+              Não cries texto genérico.
+              Mantém contexto operacional.
+              `
+          }]
+        }
+      ]
     });
 
-    
+    const summary = response.candidates[0].content.parts[0].text;
 
-    const candidate = response?.candidates?.[0];
-    console.log("candidate", candidate)
-
-    const functionCall = candidate?.content?.parts?.find(
-      p => p.functionCall
-    )?.functionCall;
-
-    console.log("functionCall:", functionCall);
-
-    // ❌ Não houve function call
-    if (!functionCall) {
-      const text = candidate?.content?.parts?.[0]?.text;
-      history.push( {
+    history = [
+      {
         role: "model",
-        parts: [{ text }]
-      })
-      console.log("Histórico da conversa no fim é", history)
-      console.log("Histórico no !functionCall:", JSON.stringify(history, null, 2))
-      return {
-        success: false,
-        type: "text",
-        content: candidate?.content?.parts?.[0]?.text || "Sem resposta"
-      };
-    }
-
-    let result;
-    const tool_call = response.functionCalls?.[0]
-    if (functionCall) {
-      if (tool_call.name === "set_task_creation") {
-      console.log("functionCall[0]", tool_call)
-      result = await setTaskCreation(
-        functionCall.args.name,
-        functionCall.args.description,
-        functionCall.args.priority,
-        functionCall.args.tags,
-        functionCall.args.estimated_hours )
-
-        console.log(`Execução da função é ${JSON.stringify(result)}`)   
+        parts: [{ text: "Resumo da conversa até agora: " + summary }]
       }
-    }
-    
-    const function_response_part = {
-      name: tool_call.name,
-      response: {result},
-      id: tool_call.id
-    }
+    ];
 
-    
-    history.push({role: 'model', parts: [{functionResponse: function_response_part}]})
+    return summary;
 
-    const final_response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
-        contents: history,
-        config: config
-    });
-
-    console.log("final_response.text =", final_response?.candidates?.[0]?.content?.parts?.[0]?.text)
-
-    console.log("Histórico da conversa no fim é", history)
-    console.log("Histórico:", JSON.stringify(history, null, 2))  
-
-    return {
-        success: true,
-        type: "text",
-        content:
-          final_response?.candidates?.[0]?.content?.parts?.[0]?.text
-      };
-
-    
   } catch (error) {
-    console.error('Gemini API Error:', error.response?.data || error);
+
+    console.error("Erro ao resumir:", error);
+
     throw new Error('Failed to call Gemini API');
+
   }
 }
-
