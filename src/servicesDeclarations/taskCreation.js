@@ -22,18 +22,23 @@ import {db} from "../db.js"
         space: args.space ?? null
     }
 
-     await saveTaskDb(task);
+    const savedTask = await saveTaskDb(task);
      await saveTagDb(task)
 
-     return task
-}
+     return savedTask
+} 
 
 async function saveTaskDb(task) {
   console.log("Estou a entrar na db para guardar task")
-  await db.query(
+  const [result] = await db.query(
     'INSERT INTO tasks (name, description, priority, estimated_hours, assignee, dueDate, space) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [task.name, task.description, task.priority, task.estimated_hours, task.assignee, task.dueDate, task.space]
   );
+
+   return {
+    id: result.insertId, // 🔥 isto é o que te falta
+    ...task
+  };
 }
 
 async function saveTagDb(task) {

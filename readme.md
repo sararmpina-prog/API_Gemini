@@ -326,3 +326,189 @@ dá me uma receita para um bolo (resolvido)
       //     "tasks": [...]
       //   }
       //   Não escrevas texto.
+
+
+
+export async function callGeminiWithFunctionDefinition(userPrompt) {
+
+  history.push({
+      role: "user",
+      parts: [{ text: userPrompt }]
+  });
+
+  console.log("Histórico da conversa (primeiro push)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
+
+  try {
+
+  let currentResponse = await generateWithFallback(history, config);
+
+  console.log(JSON.stringify(currentResponse, null, 2));
+
+  let step = 1;
+  const MAX_STEPS = 5;
+
+  while ( step <= MAX_STEPS) {
+
+  const parts = currentResponse?.candidates?.[0]?.content?.parts || [];
+
+  console.log("parts =", parts)
+
+  if (parts && parts.length > 0) {
+  console.log("parts existe e length maior que zero")  
+  history.push({
+    role: "model",
+    parts
+  });
+}
+
+  console.log("Histórico da conversa (resposta Gemini)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
+
+  console.log("parts", parts)
+  console.log(`🔁 STEP ${step}`);
+  console.log("Funções pedidas pelo modelo:");
+
+  const functionCalls = parts.filter(p => p.functionCall).map(p => p.functionCall)
+
+
+  console.log("functionCalls", functionCalls)
+
+ if (functionCalls.length == 0) {
+
+    break
+    }
+
+    // Mostrar chamadas
+   currentResponse.functionCalls.forEach(fn => {
+    console.log(`➡️ ${fn.name}`, fn.args);
+  });
+  
+
+/*
+ * ================================
+ * 5. EXECUTAR FUNÇÕES (SIMULAÇÃO)
+ * ================================
+ */
+    const functionResults = await Promise.all(currentResponse.candidates[0].content.parts
+    .filter(p => p.functionCall)
+    .map(async (p) => {
+
+    const fn = p.functionCall;  
+    let result;
+
+    switch (fn.name) {
+      case 'set_task_creation':
+        result = await setTaskCreation(fn.args);
+        break;
+
+      case 'set_task_delete':
+        result = await setTaskDelete(fn.args.id);
+        break;
+
+      case 'set_task_update':
+      result = await setTaskUpdate(fn.args);
+      break;
+
+      case "get_urgent_tasks":
+      result = await getUrgentTasks();
+      break;
+
+      default:
+      result = { error: 'Unknown function' };
+    }
+
+    console.log(`✅ Executada: ${fn.name}`, result);
+
+    return {
+      name: fn.name,
+      response: result ?? {},
+      thought_signature: fn.thought_signature
+    };
+  }));
+
+      // Adicionar function responses ao histórico
+      const toolMessage = {
+        role: "tool",
+        parts: functionResults.map(fr => ({
+          functionResponse: {
+            name: fr.name,
+            response:  fr.response  ?? {}
+          }
+        }))};
+
+      history.push(toolMessage);
+
+      console.log("Histórico da conversa (resposta Gemini execução funções)", history)
+      console.log("Histórico:", JSON.stringify(history, null, 2))
+      
+
+  // Pedir próxima resposta ao Gemini
+  currentResponse = await generateWithFallback(history, config);
+    step++;
+    console.log("currentResponse", currentResponse) 
+  }
+
+          
+// Resposta final texto
+  // const finalText = currentResponse?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+
+  const urgentTasksResult = functionResults.find(
+    fr => fr.name === "get_urgent_tasks"
+  );
+
+  const tasks = urgentTasksResult?.response?.tasks || null;
+  
+  const finalParts =
+  currentResponse?.candidates?.[0]?.content?.parts || [];
+
+  console.log("final parts", finalParts)
+
+  const finalText =
+  finalParts.find(p => p.text)?.text;
+
+  console.log("finalText", finalText)
+
+  if (finalText) {
+
+    history.push({
+        role: "model",
+        parts: [{ text: finalText }]
+    });
+  }
+
+  console.log("Histórico da conversa (resposta FINALISSIMO)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
+
+  // if (urgentTasksResult) {
+
+  //     return {
+  //       success: true,
+  //       type: "tasks",
+  //       tasks: urgentTasksResult.response.tasks
+  //     };
+  //   }
+
+  console.log("isto são as tarefas", urgentTasksResult?.response?.tasks)
+  console.log("isto são os textos", finalText?.trim())
+
+  const finalResponse = {
+      success: true,
+      data: {
+        message: finalText,
+        tasks: tasks
+      }
+    };
+
+ 
+      
+} catch (error) {
+
+  console.error(
+      "Gemini API Error:",
+      error.response?.data || error
+  );
+
+  throw error
+    }
+  }

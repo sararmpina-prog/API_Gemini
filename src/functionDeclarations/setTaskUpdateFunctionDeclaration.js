@@ -3,7 +3,22 @@ import {Type } from '@google/genai';
 
 export const setTaskUpdateFunctionDeclaration = {
   name: 'set_task_update',
-  description: 'Updates an existing task',
+  description: `Updates an existing task.
+
+    IMPORTANT:
+    - Never guess or infer task IDs.
+    - Only use this function when task IDs are explicitly provided:
+      - by the user
+      - by a previous tool response
+      - or by an immediately preceding task creation action.
+    - Never infer which tasks should be updated based on vague filters, relative dates, or semantic interpretation alone.
+    - Expressions like:
+      - "essas tarefas"
+      - "as de ontem"
+      - "as urgentes"
+      - "as antigas"
+      are NOT sufficient for automatic updates unless the user explicitly confirms the selected task IDs.
+`,
 
   parameters: {
     type: Type.OBJECT,
