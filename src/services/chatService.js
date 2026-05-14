@@ -13,13 +13,14 @@ export async function sendPromptService(text) {
    console.log("estou no send prompt service")   
     try {
     let prompt = text
+    console.log("prompt", prompt)
 
     const response = await callGeminiWithFunctionDefinition(prompt);
 
     console.log('Gemini Response:', response);
 
 
-     await saveMessage(text, response);
+    await saveMessage(text, response);
 
     return response
 
@@ -32,11 +33,13 @@ export async function sendPromptService(text) {
 
 
 async function saveMessage(prompt, response) {
-  console.log("A resposta para guardar o histórico é", response)
+  if (response) {
+    console.log("A resposta para guardar o histórico é", response)
   return db.query(
     'INSERT INTO chat_history (user_message, ai_response) VALUES (?, ?)',
     [prompt, response.content]
   );
+  } 
 }
 
 

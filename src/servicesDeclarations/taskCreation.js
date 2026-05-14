@@ -32,7 +32,7 @@ async function saveTaskDb(task) {
   console.log("Estou a entrar na db para guardar task")
   await db.query(
     'INSERT INTO tasks (name, description, priority, estimated_hours, assignee, dueDate, space) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [task.name, task.description, task.priority, task.estimated_hours, task.assigned, task.dueDate, task.space]
+    [task.name, task.description, task.priority, task.estimated_hours, task.assignee, task.dueDate, task.space]
   );
 }
 

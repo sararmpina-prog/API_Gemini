@@ -21,11 +21,23 @@ export function createSystemPrompt() {
       - Nunca respondas com JSON manual.
       - Nunca cries campos como "tool_code".
       - Usa apenas o sistema nativo de function calling disponível.
+      - Sempre que o utilizador pedir tarefas urgentes, usa a função get_urgent_tasks.
+
+
+      Quando utilizares function calling:
+
+      - Depois de receberes os resultados das funções (tool responses),
+        deves gerar SEMPRE uma mensagem final para o utilizador.
+      - A resposta final deve confirmar todas as ações executadas.
+      - Nunca deixes a resposta vazia após tool execution. 
+
+      Depois de tool responses:
+      - gera sempre resposta final
 
       Inferência automática:
       - Hoje é ${today}.
       - Quando faltarem informações não críticas, tenta inferi-las automaticamente.
-      - Gera descrições curtas automaticamente com base no pedido do utilizador.
+      - Gera descrições curtas automaticamente com base no pedido do utilizador. Não deixes esse campo vazio.
       - Gera tags automaticamente.
       - Estima horas automaticamente quando necessário.
       - Se o utilizador disser "urgente", define prioridade alta.

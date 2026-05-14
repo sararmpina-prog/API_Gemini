@@ -16,7 +16,7 @@ import {db} from "../db.js"
         priority: args.priority ?? existingTask.priority,
         tags: args.tags ?? existingTask.tags,
         estimated_hours: args.estimated_hours ?? existingTask.estimated_hours,
-        assigned: args.assignee ?? existingTask.assignee,
+        assignee: args.assignee ?? existingTask.assignee,
         dueDate: args.dueDate ?? existingTask.dueDate,
         space: args.space ?? existingTask.space
     }
@@ -29,9 +29,8 @@ import {db} from "../db.js"
 async function updateTaskDb(id, task) {
   console.log("Estou a entrar na db para actualizar task")
   await db.query(
-     "UPDATE tasks SET name = ?, description = ?, priority = ?, estimated_hours = ?, assigned = ?, dueDate = ?, space = ? WHERE id = ?",
-    'INSERT INTO tasks (name, description, priority, estimated_hours, assigned, dueDate, space) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [task.name, task.description, task.priority, task.estimated_hours, task.assigned, task.dueDate, task.space, id]
+     "UPDATE tasks SET name = ?, description = ?, priority = ?, estimated_hours = ?, assignee = ?, dueDate = ?, space = ? WHERE id = ?",
+    [task.name, task.description, task.priority, task.estimated_hours, task.assignee, task.dueDate, task.space, id]
   );
 }
 

@@ -309,3 +309,20 @@ Chamar set_task_creation com:
 IMPORTANTE:
 Quando a intenção for criar tarefa, a tua resposta deve ser exclusivamente uma function call.
 `
+
+
+
+dá me uma receita para um bolo (resolvido)
+
+
+1. Ver modelos e fallback
+2. Ver histórico
+3. Colocar 
+4. Testar "edita a prioridade de tarefa X" 
+
+ // - Quando devolver tarefas, responde APENAS em JSON válido.
+      //   Formato:
+      //   {
+      //     "tasks": [...]
+      //   }
+      //   Não escrevas texto.

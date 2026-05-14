@@ -7,6 +7,8 @@ import {setTaskUpdateFunctionDeclaration} from './functionDeclarations/setTaskUp
 import {setTaskCreation} from './servicesDeclarations/taskCreation.js'
 import {setTaskDelete} from './servicesDeclarations/taskDelete.js'
 import {setTaskUpdate} from './servicesDeclarations/taskUpdate.js'
+import { getUrgentTasks } from './servicesDeclarations/getUrgentTasks.js';
+import {getUrgentTasksFunctionDeclaration} from './functionDeclarations/getUrgentTasksFunctionDeclaration.js'
 
 // History general starts off as a empty array
 let history = [];
@@ -18,6 +20,17 @@ if (!process.env.GEMINI_API_KEY) {
   process.exit(1);
 }
 
+//Ter vários modelos disponiveis 
+const GEMINI_MODELS = [
+  "gemini-2-flash",
+  "gemini-2.5-pro",
+  "gemini-2.5-flash-lite",
+  "gemini-3-flash",
+  "gemini-2.5-flash",
+  "gemini-3.1-flash-lite",
+  "gemini-2-flash-lite"
+];
+
 
 // Initialize Gemini AI (same as working code)
 const ai = new GoogleGenAI({
@@ -25,162 +38,252 @@ const ai = new GoogleGenAI({
 });
 
 
+//Criar config 
+const config = {
+
+  systemInstruction: createSystemPrompt(),
+
+  tools: [
+      {
+          functionDeclarations: [
+              setTaskCreationFunctionDeclaration,
+              setTaskDeleteFunctionDeclaration,
+              setTaskUpdateFunctionDeclaration,
+              getUrgentTasksFunctionDeclaration
+          ]
+      }
+  ],
+
+  toolConfig: {
+      functionCallingConfig: {
+          mode: 'AUTO'
+      }
+  }
+}; 
+
+
+
 export async function callGeminiWithFunctionDefinition(userPrompt) {
 
-     const config = {
+  history.push({
+      role: "user",
+      parts: [{ text: userPrompt }]
+  });
 
-        systemInstruction: createSystemPrompt(),
+  if (history.length > 20) {
+    history = history.slice(-10);
+  }
 
-        tools: [
-            {
-                functionDeclarations: [
-                    setTaskCreationFunctionDeclaration,
-                    setTaskDeleteFunctionDeclaration
-                ]
-            }
-        ],
+  console.log("Histórico da conversa (primeiro push)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
 
-        toolConfig: {
-            functionCallingConfig: {
-                mode: 'AUTO'
-            }
-        }
-    }; 
+  try {
 
-      history.push({
-          role: "user",
-          parts: [{ text: userPrompt }]
-      });
+  console.log("📤 A ENVIAR HISTORY");
 
-      if (history.length > 30) {
-        history = history.slice(-10);
-      }
-
-    try {
-
-        let currentResponse = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: history,
-            config: config
-        });
+  let currentResponse = await generateWithFallback(history, config);
       
-        let step = 1;
-        const MAX_STEPS = 5;
+  console.log("📥 RESPOSTA DO GEMINI");
 
-        while (currentResponse.functionCalls?.length && step <= MAX_STEPS) {
+  let step = 1;
+  const MAX_STEPS = 5;
 
-            console.log(`🔁 STEP ${step}`);
-            console.log("Funções pedidas pelo modelo:");
+  while ( step <= MAX_STEPS) {
 
-            const functionCalls =
-              currentResponse?.candidates?.[0]?.content?.parts
-                ?.filter(p => p.functionCall)
-                ?.map(p => p.functionCall) || [];
+  const parts = currentResponse?.candidates?.[0]?.content?.parts || [];
 
-            if (!functionCalls.length) {
-              break;
-            }
+  if (parts && parts.length > 0) {
+  history.push({
+    role: "model",
+    parts
+  });
+}
 
-            console.log(`🔁 STEP ${step}`);
+  console.log("Histórico da conversa (resposta Gemini)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
 
-             // Mostrar chamadas
-            currentResponse.functionCalls.forEach(fn => {
-              console.log(`➡️ ${fn.name}`, fn.args);
-            });
+  console.log("parts", parts)
+  console.log(`🔁 STEP ${step}`);
+  console.log("Funções pedidas pelo modelo:");
 
-           
-              /**
-   * ================================
-   * 5. EXECUTAR FUNÇÕES (SIMULAÇÃO)
-   * ================================
-   */
-        const functionResults = await Promise.all(currentResponse.functionCalls.map(async (fn) => {
-          let result;
+  const functionCalls = parts.filter(p => p.functionCall).map(p => p.functionCall)
 
-          switch (fn.name) {
-            case 'set_task_creation':
-              result = await setTaskCreation(fn.args);
-              break;
+   if (!functionCalls.length) {
 
-            case 'set_task_delete':
-              result = await setTaskDelete(fn.args.id);
-              break;
-
-            case 'set_task_update':
-            result = await setTaskUpdate(fn.args);
-            break;
-
-            default:
-              result = { error: 'Unknown function' };
+      currentResponse = await generateWithFallback(
+        [
+          ...history,
+          {
+            role: "user",
+            parts: [{
+              text: "Responde ao utilizador de forma natural com o resultado das operações executadas."
+            }]
           }
+        ],
+        config
+      );
 
-          console.log(`✅ Executada: ${fn.name}`, result);
+      break;
+    }
 
-          return {
-            name: fn.name,
-            response: result ?? {}
-          };
-        }));
-              
+    console.log(`🔁 STEP ${step}`);
 
-            // 👇 adicionar function responses ao histórico
-            const toolMessage = {
-              role: "tool",
-              parts: functionResults.map(fr => ({
-                functionResponse: {
-                  name: fr.name,
-                  response:  fr.response  ?? {}
-                }
-              }))
+    // Mostrar chamadas
+  currentResponse.functionCalls.forEach(fn => {
+    console.log(`➡️ ${fn.name}`, fn.args);
+  });
+          
+           
+/**
+ * ================================
+ * 5. EXECUTAR FUNÇÕES (SIMULAÇÃO)
+ * ================================
+ */
+  const functionResults = await Promise.all(currentResponse.functionCalls.map(async (fn) => {
+    let result;
 
-              
-            };
+    switch (fn.name) {
+      case 'set_task_creation':
+        result = await setTaskCreation(fn.args);
+        break;
 
-            // 👇 pedir próxima resposta ao Gemini
-           currentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: [
-                  ...history,
-                  toolMessage
-                ],
-                config: config
-              });
-              step++;
-            
-          console.log("currentResponse", currentResponse)
-        // 👇 resposta final texto
-        const finalText =
-            currentResponse?.candidates?.[0]
-            ?.content?.parts?.[0]?.text;
+      case 'set_task_delete':
+        result = await setTaskDelete(fn.args.id);
+        break;
 
-          console.log("finalText", finalText)
+      case 'set_task_update':
+      result = await setTaskUpdate(fn.args);
+      break;
 
-        if (finalText) {
+      case "get_urgent_tasks":
+      result = await getUrgentTasks();
+      break;
 
-            history.push({
-                role: "model",
-                parts: [{ text: finalText }]
-            });
-        }
+      default:
+      result = { error: 'Unknown function' };
+    }
 
-        return {
-            success: true,
-            type: "text",
-            content: finalText || "Sem resposta"
-        };
+    console.log(`✅ Executada: ${fn.name}`, result);
+
+    return {
+      name: fn.name,
+      response: result ?? {}
+    };
+  }));
+      
+    const urgentTasksResult = functionResults.find(
+      fr => fr.name === "get_urgent_tasks"
+    );
+
+    if (urgentTasksResult) {
+
+      return {
+        success: true,
+        type: "tasks",
+        tasks: urgentTasksResult.response.tasks
+      };
+    }
+
+  // Adicionar function responses ao histórico
+  const toolMessage = {
+    role: "tool",
+    parts: functionResults.map(fr => ({
+      functionResponse: {
+        name: fr.name,
+        response:  fr.response  ?? {}
       }
-    } catch (error) {
+    }))};
 
-        console.error(
-            "Gemini API Error:",
-            error.response?.data || error
-        );
+  history.push(toolMessage);
 
-        throw new Error(
-            "Failed to call Gemini API"
-        );
+  console.log("Histórico da conversa (resposta Gemini execução funções)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
+
+  // Pedir próxima resposta ao Gemini
+  currentResponse = await generateWithFallback(history, config);
+    step++;
+    console.log("currentResponse", currentResponse) 
+  }
+
+          
+// Resposta final texto
+  // const finalText = currentResponse?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+
+  const finalParts =
+  currentResponse?.candidates?.[0]?.content?.parts || [];
+
+  const finalText =
+  finalParts.find(p => p.text)?.text;
+
+  console.log("finalText", finalText)
+
+  if (finalText) {
+
+    history.push({
+        role: "model",
+        parts: [{ text: finalText }]
+    });
+  }
+
+  console.log("Histórico da conversa (resposta FINALISSIMO)", history)
+  console.log("Histórico:", JSON.stringify(history, null, 2))
+
+  return {
+      success: true,
+      type: "text",
+      content: finalText || "Sem resposta"
+  };
+
+ 
+      
+} catch (error) {
+
+  console.error(
+      "Gemini API Error:",
+      error.response?.data || error
+  );
+
+  throw error
     }
   }
+
+
+
+
+async function generateWithFallback(contents, config) {
+
+  let lastError = null;
+
+  for (let i = 0; i < GEMINI_MODELS.length; i++) {
+    let model = GEMINI_MODELS[i];
+
+    try {
+    console.log("A tentar modelo:", model);
+
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: contents,
+      config: config
+    });
+
+    console.log("Sucesso com modelo:", model);
+
+    return response; 
+
+ } catch (error) {
+
+  console.warn("Modelo falhou porque", error.message);
+
+  if (error.status === 404) {
+  console.log("Modelo não existe, a continuar...");
+  continue;
+}
+
+  lastError = error;
+}}
+  throw lastError;
+  }
+
 
 
 
@@ -317,6 +420,9 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
 
 
 // SummaryHistory to be called in callGemini with history
+
+
+
 async function summarizeHistory() {
 
   try {
