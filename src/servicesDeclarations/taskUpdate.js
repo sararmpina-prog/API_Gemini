@@ -1,10 +1,13 @@
 import {db} from "../db.js"
-
+import { validateDescription } from "../middlewares/validateDescription.js";
+import { validatePriority } from "../middlewares/validatePriority.js";
+import { validateName } from "../middlewares/validateName.js"; 
 
 //Update task and check if task exists in DB
  export async function setTaskUpdate(args) {
 
-    console.log("💡 Executando função real da atualização de tarefas...");
+try {
+  console.log("💡 Executando função real da atualização de tarefas...");
 
     const existingTask = await getTaskById(args.id);
 
@@ -12,11 +15,15 @@ import {db} from "../db.js"
       return { success: false, error: "Task not found" };
     }
 
+    let name = validateName(args.name)
+    let priority = validatePriority(args.priority)
+    let description = validateDescription(args.description)
+
 
     let task = {
-        name: args.name ?? existingTask.name,
-        description: args.description ?? existingTask.description,
-        priority: args.priority ?? existingTask.priority,
+        name: name ?? existingTask.name,
+        description: description ?? existingTask.description,
+        priority: priority ?? existingTask.priority,
         tags: args.tags ?? existingTask.tags,
         estimated_hours: args.estimated_hours ?? existingTask.estimated_hours,
         assignee: args.assignee ?? existingTask.assignee,
@@ -31,6 +38,15 @@ import {db} from "../db.js"
     }
 
      return task
+} catch (error) {
+  console.error("Error in setTaskUpdate", error.message);
+
+      return {
+        success: false,
+        error: error.message
+      };
+}
+    
 }
 
 //Update task in DB

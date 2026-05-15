@@ -1,5 +1,7 @@
 import {db} from "../db.js"
-
+import { validateDescription } from "../middlewares/validateDescription.js";
+import { validatePriority } from "../middlewares/validatePriority.js";
+import { validateName } from "../middlewares/validateName.js"; 
 
 //Create new tasks (mandatory parameters name)
  export async function setTaskCreation(args) {
@@ -62,69 +64,3 @@ if (task.tags.length > 0) {
   }
 }
 
-//Extra validations to SystemPrompt 
-
-//Validate task name eixts, length, no code and no numbers
-function validateName(name) {
-  const clean = name.trim();
-
-  if (!clean) {
-    throw new Error ("Task can not be empty")
-  }
-
-  //No numbers
-  if (/^\d+$/.test(clean)) {
-    throw new Error ("Task name cannot be just numbers")
-  }
-
-  //Block code
-  const codePatterns = [
-    /```/,
-    /def\s+\w+\s*\(/,
-    /function\s+\w+\s*\(/,
-    /class\s+\w+/,
-    /import\s+\w+/,
-    /<script>/i,
-    /<\/script>/i
-  ];
-
-  if (codePatterns.some(p => p.test(clean))) {
-    throw new Error("Task name cannot contain code");
-  }
-
-  if (clean.length > 100) {
-    throw new Error ("Task name too long. Maximum 100 caracteres")
-  }
-
-  return clean;
-}
-
-
-//Validate priorities are this ones
-const priorities = ["Urgente", "Alta", "Normal", "Baixa"];
-
-function validatePriority(priority) {
-  const clean = String(priority ?? "").trim();
-
-  if (!priorities.includes(clean)) {
-    throw new Error ("Priority can only be Urgente, Alta, Normal, Baixa")
-  }
-
-  return clean;
-}
-
-const MAX_DESCRIPTION_LENGTH = 250;
-
-//Validate description length
-function validateDescription(description) {
-
-  if (!description) return null;
-
-  if (description.length > MAX_DESCRIPTION_LENGTH) {
-    throw new Error(
-      `Descrição demasiado longa. Máximo permitido: ${MAX_DESCRIPTION_LENGTH} caracteres.`
-    );
-  }
-
-  return description;
-}

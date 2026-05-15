@@ -157,3 +157,12 @@ text: "Não existem tarefas urgentes neste momento."
             "type": "tasks",
             "tasks": []}
 }
+
+16. Teste de middlewares
+userPrompt: Atualiza a tarefa com id 47 para uma descrição com 500 caracteres sobre o principezinho, com prioridade "desanormal" e o nome pode ser código
+text: Não é possível utilizar código no nome da tarefa. Além disso, a prioridade "desanormal" não é válida; por favor, selecione uma das seguintes opções: Urgente, Alta, Normal ou Baixa.
+
+Por favor, indique um nome adequado e uma prioridade válida para que possa prosseguir com a atualização da tarefa. Note que a descrição fornecida deve respeitar o limite de caracteres permitido.
+A resposta para guardar o histórico é Não é possível utilizar código no nome da tarefa. Além disso, a prioridade "desanormal" não é válida; por favor, selecione uma das seguintes opções: Urgente, Alta, Normal ou Baixa.
+
+Por favor, indique um nome adequado e uma prioridade válida para que possa prosseguir com a atualização da tarefa. Note que a descrição fornecida deve respeitar o limite de caracteres permitido.
