@@ -192,10 +192,6 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
   tasks = urgentTasksResult?.response?.tasks || null;
   }
 
-          
-// Resposta final texto
-  // const finalText = currentResponse?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
-
   
   const finalParts =
   currentResponse?.candidates?.[0]?.content?.parts || [];
@@ -208,11 +204,11 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
   console.log("finalText", finalText)
 
   if (finalText) {
-
-    history.push({
-        role: "model",
-        parts: [{ text: finalText }]
-    });
+    //duplicação no histórico
+    // history.push({
+    //     role: "model",
+    //     parts: [{ text: finalText }]
+    // });
 
     finalText = finalText?.trim()
   }
@@ -232,7 +228,7 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
     
     };
     console.log("finalResponse", finalResponse)
-return finalResponse
+    return finalResponse
  
       
 } catch (error) {

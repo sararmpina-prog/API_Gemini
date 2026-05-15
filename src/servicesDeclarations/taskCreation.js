@@ -2,19 +2,14 @@ import {db} from "../db.js"
 
  export async function setTaskCreation(args) {
     console.log("💡 Executando função real da criação de tarefas...");
-
-     if (!args.name) {
-        throw new Error("Missing task name");
-    }
-
-    if (!args.priority) {
-        throw new Error("Missing priority");
-    }
+try {
+    let name = validateName(args.name)
+    let priority = validatePriority(args.priority)
 
     let task = {
-        name: args.name,
+        name: name,
         description: args.description ?? null,
-        priority: args.priority,
+        priority: priority,
         tags: args.tags ?? [],
         estimated_hours: args.estimated_hours ?? null,
         assignee: args.assignee ?? null,
@@ -26,6 +21,15 @@ import {db} from "../db.js"
      await saveTagDb(task)
 
      return savedTask
+     } catch (error) {
+      console.error("Error in setTaskCreation:", error.message);
+
+      return {
+        success: false,
+        error: error.message
+      };
+
+     }
 } 
 
 async function saveTaskDb(task) {
@@ -36,7 +40,7 @@ async function saveTaskDb(task) {
   );
 
    return {
-    id: result.insertId, // 🔥 isto é o que te falta
+    id: result.insertId, 
     ...task
   };
 }
@@ -54,3 +58,48 @@ if (task.tags.length > 0) {
 }
 
 
+function validateName(name) {
+  const clean = name.trim();
+
+  if (!clean) {
+    throw new Error ("Task can not be empty")
+  }
+
+  //Não ser só números
+  if (/^\d+$/.test(clean)) {
+    throw new Error ("Task name cannot be just numbers")
+  }
+
+  //Bloquear código
+  const codePatterns = [
+    /```/,
+    /def\s+\w+\s*\(/,
+    /function\s+\w+\s*\(/,
+    /class\s+\w+/,
+    /import\s+\w+/,
+    /<script>/i,
+    /<\/script>/i
+  ];
+
+  if (codePatterns.some(p => p.test(clean))) {
+    throw new Error("Task name cannot contain code");
+  }
+
+  if (clean.length > 100) {
+    throw new Error ("Task name too long. Maximum 100 caracteres")
+  }
+
+  return clean;
+}
+
+const priorities = ["Urgente", "Alta", "Normal", "Baixa"];
+
+function validatePriority(priority) {
+  const clean = String(priority ?? "").trim();
+
+  if (!priorities.includes(clean)) {
+    throw new Error ("Priority can only be Urgente, Alta, Normal, Baixa")
+  }
+
+  return clean;
+}

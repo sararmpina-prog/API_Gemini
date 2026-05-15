@@ -46,6 +46,6 @@ parameters: {
           description: ` Task due date. Use the format: YYYY-MM-DD. Only add if explicitly told a due date`
         },
           },
-          required: ['name', 'description', 'priority'],
+          required: ['name'],
     }
 }; 

@@ -22,8 +22,13 @@ export const sendPrompt = async (req, res) => {
 
 
         const result = await sendPromptService(text);
-
+        
         console.log("A resposta ao prompt é", result)
+
+        //Devolve antes mensagem de erro 
+        // if (result?.error === "Task not found") {
+        //     return res.status(404).json(result);
+        // }
 
         res.status(200).json({data: result});
 

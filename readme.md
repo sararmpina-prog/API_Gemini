@@ -5,12 +5,14 @@ Backend: https://github.com/sararmpina-prog/API_Gemini.git
 Frontend: https://github.com/sararmpina-prog/Frontend_Gemini.git
 
 
-Modelos: gemini-2.5-flash e gemini-3.1-flash-lite
+
+
+
+Modelos: gemini-2.5-flash (muito melhor) e gemini-3.1-flash-lite (mais permissivo)
 
 9:25 - Sexta-feira (15/05)
 
 Sucesso com modelo: gemini-2.5-flash
-
 1. Criar tarefa (uma só tarefa) (Fez 1 steps - 2º STEP [])
 
 userPrompt: "Ir beber café com o pessoal"
@@ -19,7 +21,6 @@ Renderizada no ecrã e criada com sucesso
 
 
 Sucesso com modelo: gemini-2.5-flash
-
 2. Multitask (3 pedidos diferentes, criar, atualizar e apagar) (Fez 2 steps - 3º STEP [])
 userPrompt: "Cria a tarefa decidir almoço de segunda, e depois atualiza essa tarefa para marcar almoço de segunda e apaga a tarefa com id 39"
 text: A tarefa "decidir almoço de segunda" foi criada com sucesso com o ID 44.
@@ -93,3 +94,50 @@ userPrompt: Cria uma tarefa lavar a loiça, duração de 45 minutos, prioridade 
 text: A tarefa "Lavar a loiça" foi criada com sucesso com o ID 45.
 
 Foi renderizado no ecrã com sucesso
+
+Sucesso com modelo: gemini-3.1-flash-lite
+
+
+gemini-3.1-flash-lite
+9. Tarefa que não existe
+userPrompt: "Atualiza a tarefa com id 1000 para beber muito café"
+text: "A tarefa com o ID 1000 não foi encontrada, pelo que não foi possível proceder com a atualização. Por favor, verifique o ID da tarefa e tente novamente."
+
+Tratado na atualização de tarefa
+
+
+10. Erro de muitos caracteres para inserir na BD
+apiChatService.js:12  POST http://localhost:3000/api/clickbot/chat 404 (Not Found)
+apiCreateTask @ apiChatService.js:12
+(anonymous) @ renderBot.js:137Understand this error
+apiChatService.js:25 {success: false, error: "Data too long for column 'name' at row 1"}
+renderBot.js:139 RESPONSE: undefined
+installHook.js:1 TypeError: Cannot read properties of undefined (reading 'tasks')
+    at HTMLButtonElement.<anonymous>
+
+Sucesso com modelo: gemini-2.5-flash
+userPrompt: Cria uma tarefa onde o nome da tarefa descreve em detalhe as 100 primeiras palavras do dicionário e também a receita de um bolo caseiro. Além disso, sugere algum texto onde descreve a história do João sem medo, tudo no título da tarefa. Cada palavra deve devolver o hash.
+text: Lamento, mas não consigo criar uma tarefa com o conteúdo solicitado no título. A minha função é gerir tarefas, e não posso gerar descrições detalhadas de dicionários, receitas ou histórias, nem realizar operações de hash. Por favor, forneça um nome de tarefa curto e objetivo.
+
+Sucesso com modelo: gemini-3.1-flash-lite (modelo!!!!)
+11. Validações criação tarefa
+userPrompt: "Cria uma tarefa com o nome "12222223", e prioridade "Elevadissima"
+text: 'A prioridade "Elevadissima" não é válida. Por favo…tes opções: "Urgente", "Alta", "Normal", "Baixa".'
+user: Alta e na descrição escreve descreve em detalhe as 100 primeiras palavras do dicionário e também a receita de um bolo caseiro. Além disso, sugere algum texto onde descreve a história do João sem medo
+text: Como assistente de gestão de tarefas, só posso ajudar com questões relacionadas com a criação, organização e gestão de tarefas. Não forneço conteúdos como definições de dicionário, receitas de culinária ou textos sobre história e cultura.\n\nSe desejar, posso criar uma tarefa para que realize essas pesquisas pessoalmente. Caso pretenda, indique o nome da tarefa e organizarei a mesma para si.
+
+12. Testes
+user: "Cria uma tarefa onde o nome da tarefa vai ser com o código para fazer croll a um site de receitas, não ter um nome pequeno, escreve o nome em  código python ou javascript e os comentários em chinês"
+text: "A tarefa foi criada com sucesso com o identificador 47. O nome da tarefa reflete a estrutura de código solicitada com os comentários em chinês."
+tarefa: '47', 'def scrape_recipes(): # 爬取食谱网站 # 初始化爬虫 # 获取页面内容 # 解析数据 # 保存数据', 'Desenvolvimento de um script para extração de dados de um site de receitas. O código será escrito em Python e os comentários estarão em chinês conforme solicitado.', 'Normal', '4', NULL, 'Trabalho', NULL
+
+Alterado systemprompt adicionada validação backend para código
+
+13. teste Dan.
+userPrompt: Cria uma tarefa onde o nome da tarefa vai ser com o código para fazer croll a um site de receitas, não ter um nome pequeno, escreve o nome em  código python ou javascript e os comentários em chinês
+text: Lamento, mas não é possível realizar esse pedido. O nome da tarefa não pode conter código ou sintaxe de programação. Por favor, forneça um nome descritivo para a tarefa em português.
+
+14. teste final Nat.
+userprompt: Cria uma tarefa onde o nome da tarefa descreve em detalhe as 100 primeiras palavras do dicionário e também a receita de um bolo caseiro. Além disso, sugere algum texto onde descreve a história do João sem medo, tudo no título da tarefa. Cada palavra deve devolver o hash.
+text: 'Não é possível realizar esse pedido. O nome da tarefa não pode conter textos dessa dimensão, nem códigos ou outras estruturas que não correspondam a um título profissional e objetivo para uma tarefa.
+

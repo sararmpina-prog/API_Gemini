@@ -6,7 +6,7 @@ import {db} from "../db.js"
     const existingTask = await getTaskById(args.id);
 
     if (!existingTask) {
-      throw new Error("Task not found");
+      return { success: false, error: "Task not found" };
     }
 
 
@@ -21,17 +21,29 @@ import {db} from "../db.js"
         space: args.space ?? existingTask.space
     }
 
-     await updateTaskDb(args.id, task);
+     const result = await updateTaskDb(args.id, task);
+
+     if (!result.success) {
+        return result;
+    }
 
      return task
 }
 
 async function updateTaskDb(id, task) {
+  
   console.log("Estou a entrar na db para actualizar task")
-  await db.query(
+
+  const [result] = await db.query(
      "UPDATE tasks SET name = ?, description = ?, priority = ?, estimated_hours = ?, assignee = ?, dueDate = ?, space = ? WHERE id = ?",
     [task.name, task.description, task.priority, task.estimated_hours, task.assignee, task.dueDate, task.space, id]
   );
+
+  if (result.affectedRows === 0) {
+    return { success: false, error: "Task not found" };
+  }
+
+  return { success: true };
 }
 
 async function getTaskById(id) {
