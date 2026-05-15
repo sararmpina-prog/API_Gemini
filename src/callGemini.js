@@ -40,7 +40,7 @@ const ai = new GoogleGenAI({
 });
 
 
-//Criar config 
+//Create config 
 const config = {
 
   systemInstruction: createSystemPrompt(),
