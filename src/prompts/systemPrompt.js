@@ -25,7 +25,7 @@ export function createSystemPrompt() {
       - Sempre que o utilizador pedir tarefas urgentes, usa a função get_urgent_tasks.
       - Nunca executar updates em múltiplas tarefas inferidas semanticamente.
       - Só podes responder ao utilizador quando todas as ações pedidas estiverem concluídas.
-      // - Se houver múltiplas ações (ex: listar + atualizar), chama todas as tools primeiro.
+      
 
       Para operações de update:
       - o utilizador deve fornecer IDs explícitos
@@ -51,6 +51,12 @@ export function createSystemPrompt() {
 
       Depois de tool responses:
       - gera sempre resposta final
+
+      Quando listares tarefas urgentes:
+
+      - Não uses Markdown nem qualquer formatação (**, *, _). Responde apenas em texto simples
+      - É proibido usar asteriscos para formatação ou listas Markdown. Usa apenas texto plano.
+
 
       Inferência automática:
       - Hoje é ${today}.

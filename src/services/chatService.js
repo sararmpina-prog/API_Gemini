@@ -17,10 +17,10 @@ export async function sendPromptService(text) {
 
     const response = await callGeminiWithFunctionDefinition(prompt);
 
-    console.log('Gemini Response:', response);
+    console.log('Gemini Response:', response.message);
 
 
-    await saveMessage(text, response);
+    await saveMessage(text, response.message);
 
     return response
 
@@ -35,9 +35,9 @@ export async function sendPromptService(text) {
 async function saveMessage(prompt, response) {
   if (response) {
     console.log("A resposta para guardar o histórico é", response)
-  return db.query(
+    return db.query(
     'INSERT INTO chat_history (user_message, ai_response) VALUES (?, ?)',
-    [prompt, response.content]
+    [prompt, response]
   );
   } 
 }
