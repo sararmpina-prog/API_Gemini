@@ -1,7 +1,7 @@
 import * as taskService from "../services/taskService.js"
 
 
-//get - return all tasks from database (+ query parameters search and/or sort)
+//get - return all tasks from database 
 export const getAllTasks = async (req, res) => {
 
     

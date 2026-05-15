@@ -692,3 +692,38 @@ isto são as tarefas [
     dueDate: null
   }
 ]
+
+isto são os textos Estas são as suas tarefas urgentes:
+
+ID 13: Revisao de codigo. Descricao: Revisao urgente do codigo no espaco de desenvolvimento para garantir a qualidade. Data limite: 2026-05-14. Espaco: Desenvolvimento.
+
+ID 25: Corrigir bug do login. Descricao: O login esta a falhar para varios utilizadores.
+
+ID 28: Corrigir bug do login. Descricao: O login esta a falhar para varios utilizadores
+
+🔁 STEP 2
+Funções pedidas pelo modelo:
+functionCalls []
+
+finalText Estas são as suas tarefas urgentes:
+
+ID 13: Revisao de codigo. Descricao: Revisao urgente do codigo no espaco de desenvolvimento para garantir a qualidade. Data limite: 2026-05-14. Espaco: Desenvolvimento.
+
+ID 25: Corrigir bug do login. Descricao: O login esta a falhar para varios utilizadores.
+
+ID 28: Corrigir bug do login. Descricao: O login esta a falhar para varios utilizadores
+
+
+
+
+🔁 STEP 1
+Funções pedidas pelo modelo:
+functionCalls [ { name: 'get_urgent_tasks', args: {}, id: 'ugRAp0nC' } ]
+
+🔁 STEP 2
+Funções pedidas pelo modelo:
+functionCalls []
+
+🔁 STEP 1
+Funções pedidas pelo modelo:
+functionCalls []

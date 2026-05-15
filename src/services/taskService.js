@@ -2,8 +2,7 @@ import {db} from "../db.js"
 
 
 
-//import tasks from database (+ query parameters search and/or sort)
-//Can have user_id = null (task is still valid, user has been deleted)
+//import tasks from database (tratamento de excepção no controller)
 export const getAllTasksDb = async () => {
 
 

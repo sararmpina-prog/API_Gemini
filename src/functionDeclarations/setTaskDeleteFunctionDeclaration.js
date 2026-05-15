@@ -1,6 +1,6 @@
 import {Type } from '@google/genai';
 
-// Define a function that the model can create task 
+// Define a function that the model can delete task
 export const setTaskDeleteFunctionDeclaration = {
 name: 'set_task_delete',
 description: 'Deletes an existing task',

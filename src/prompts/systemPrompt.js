@@ -1,4 +1,4 @@
-// Can potentially pass a variable and change systemPrompt - not needed yet
+// SystemPrompt
 export function createSystemPrompt() {
 
   const today = new Date().toISOString().split("T")[0];

@@ -1,6 +1,6 @@
 import {Type } from '@google/genai';
 
-
+// Define a function that the model can update task 
 export const setTaskUpdateFunctionDeclaration = {
   name: 'set_task_update',
   description: `Updates an existing task.

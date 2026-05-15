@@ -26,4 +26,3 @@ app.listen(PORT,() => {
 });
 
 console.log("APP LOADED");
-//colocar cors

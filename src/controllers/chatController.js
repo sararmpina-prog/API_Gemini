@@ -2,7 +2,7 @@ import {sendPromptService} from "../services/chatService.js";
 
 
 
-//post - userPrompt  
+//post - userPrompt Controller (added in case no response from model)
 export const sendPrompt = async (req, res) => {
      
     try {
@@ -22,15 +22,18 @@ export const sendPrompt = async (req, res) => {
 
 
         const result = await sendPromptService(text);
-        
+
+        if (!result.success) {
+            console.log("sem resposta do modelo")
+            return res.status(422).json(result);
+        }
+                    
         console.log("A resposta ao prompt é", result)
 
-        //Devolve antes mensagem de erro 
-        // if (result?.error === "Task not found") {
-        //     return res.status(404).json(result);
-        // }
-
+        
         res.status(200).json({data: result});
+        
+
 
     } catch (error) {
         console.error('Error in /api/clickbot/chat:', error);

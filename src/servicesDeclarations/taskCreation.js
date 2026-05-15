@@ -1,8 +1,10 @@
 import {db} from "../db.js"
 
+
+//Função criar nova tarefa (parametros obrigatório: nome tarefa)
  export async function setTaskCreation(args) {
     console.log("💡 Executando função real da criação de tarefas...");
-try {
+  try {
     let name = validateName(args.name)
     let priority = validatePriority(args.priority)
 
@@ -32,6 +34,7 @@ try {
      }
 } 
 
+//guardar na BD as novas tarefas - retornar ID (permite criar tarefa e depois atualizar a mesma)
 async function saveTaskDb(task) {
   console.log("Estou a entrar na db para guardar task")
   const [result] = await db.query(
@@ -45,6 +48,7 @@ async function saveTaskDb(task) {
   };
 }
 
+//Caso haja tags (se duplicadas ignorar)
 async function saveTagDb(task) {
 console.log("Estou a entrar na db para guardar tags")
 if (task.tags.length > 0) {
@@ -57,7 +61,9 @@ if (task.tags.length > 0) {
   }
 }
 
+//Extra ao SystemPrompt - já explicito tudo isto
 
+//Validar nome - existe; não são só números, não é código, e tamanho
 function validateName(name) {
   const clean = name.trim();
 
@@ -92,6 +98,8 @@ function validateName(name) {
   return clean;
 }
 
+
+//Validar que as prioridades são só estas
 const priorities = ["Urgente", "Alta", "Normal", "Baixa"];
 
 function validatePriority(priority) {

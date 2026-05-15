@@ -1,6 +1,9 @@
 import {db} from "../db.js"
 
+
+//Função atualizar tarefa e validação se existe essa tarefa
  export async function setTaskUpdate(args) {
+
     console.log("💡 Executando função real da atualização de tarefas...");
 
     const existingTask = await getTaskById(args.id);
@@ -30,8 +33,9 @@ import {db} from "../db.js"
      return task
 }
 
+//Atualizar na BD
 async function updateTaskDb(id, task) {
-  
+
   console.log("Estou a entrar na db para actualizar task")
 
   const [result] = await db.query(
@@ -46,6 +50,7 @@ async function updateTaskDb(id, task) {
   return { success: true };
 }
 
+//Selecionar tarefa da BD
 async function getTaskById(id) {
   console.log("Estou a entrar na db para ir buscar a tarefa existente")
   const [rows] = await db.query(

@@ -64,6 +64,7 @@ const config = {
 }; 
 
 
+//Chamada à API Gemini - Definição de função (múltipla)
 export async function callGeminiWithFunctionDefinition(userPrompt) {
 
   history.push({
@@ -244,7 +245,7 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
 
 
 
-
+//Percorrer array dos modelos de teste: Melhores - gemini-2.5-flash e gemini-3.1-flash-lite (mais permissivo)
 async function generateWithFallback(contents, config) {
 
   let lastError = null;
