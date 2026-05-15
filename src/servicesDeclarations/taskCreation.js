@@ -7,10 +7,11 @@ import {db} from "../db.js"
   try {
     let name = validateName(args.name)
     let priority = validatePriority(args.priority)
+    let description = validateDescription(args.description)
 
     let task = {
         name: name,
-        description: args.description ?? null,
+        description: description ?? null,
         priority: priority,
         tags: args.tags ?? [],
         estimated_hours: args.estimated_hours ?? null,
@@ -110,4 +111,20 @@ function validatePriority(priority) {
   }
 
   return clean;
+}
+
+const MAX_DESCRIPTION_LENGTH = 250;
+
+//Validate description length
+function validateDescription(description) {
+
+  if (!description) return null;
+
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    throw new Error(
+      `Descrição demasiado longa. Máximo permitido: ${MAX_DESCRIPTION_LENGTH} caracteres.`
+    );
+  }
+
+  return description;
 }
