@@ -1,6 +1,6 @@
 import {db} from '../db.js'
 
-//Se não houver tarefas urgentes devolve [] (testado)
+//Get urgent tasks if none returns [] (tested)
 export async function getUrgentTasks() {
   
   

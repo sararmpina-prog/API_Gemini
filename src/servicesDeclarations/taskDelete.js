@@ -1,7 +1,7 @@
 import {db} from "../db.js"
 
 
-//Eliminar tarefa e validação se não existir (mensagem de erro)
+//Delete task and check if it exists
  export async function setTaskDelete(id) {
     console.log("💡 Executando função real da eliminação de tarefas...");
 
@@ -21,7 +21,7 @@ import {db} from "../db.js"
 }
 
 
-//Eliminar tarefa da BD
+//Delete task from DB
 async function deleteTaskDb(id) {
   console.log("Estou a entrar na db para eliminar task")
   const [result] = await db.query(

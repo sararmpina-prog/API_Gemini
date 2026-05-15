@@ -7,7 +7,7 @@ import {db} from "../db.js"
 console.log('API Key in service:', process.env.GEMINI_API_KEY ? 'LOADED' : 'NOT LOADED');
 
 
-// Chamada à callGemini (passar userPrompt, chamada para guardar na BD, resposta para controller)
+// Call to API gemini, if returns answer calls "save message" for DB otherwise returns "no message"
 export async function sendPromptService(text) {
     
    console.log("estou no send prompt service")   
@@ -34,7 +34,7 @@ export async function sendPromptService(text) {
  
 }
 
-//Inserir na BD caso passe validação (haja resposta da apiGemini)
+//saves message (user prompt and answer) if there's an answer 
 async function saveMessage(prompt, response) {
 
     console.log("A resposta para guardar o histórico é", response)

@@ -20,8 +20,8 @@ if (!process.env.GEMINI_API_KEY) {
   process.exit(1);
 }
 
-// Sucesso com modelo: gemini-3.1-flash-lite
-//Ter vários modelos disponiveis 
+
+//Different models available
 const GEMINI_MODELS = [
   //  "gemini-3.1-pro",
     "gemini-2.5-pro",
@@ -64,7 +64,7 @@ const config = {
 }; 
 
 
-//Chamada à API Gemini - Definição de função (múltipla)
+//Call Api Gemini (multiple function definitions)
 export async function callGeminiWithFunctionDefinition(userPrompt) {
 
   history.push({
@@ -245,7 +245,7 @@ export async function callGeminiWithFunctionDefinition(userPrompt) {
 
 
 
-//Percorrer array dos modelos de teste: Melhores - gemini-2.5-flash e gemini-3.1-flash-lite (mais permissivo)
+//Go through models: Best - gemini-2.5-flash + gemini-3.1-flash-lite 
 async function generateWithFallback(contents, config) {
 
   let lastError = null;
@@ -279,6 +279,8 @@ async function generateWithFallback(contents, config) {
 }}
   throw lastError;
   }
+
+
 
 
 

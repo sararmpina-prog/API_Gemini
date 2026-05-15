@@ -2,7 +2,7 @@ import {db} from "../db.js"
 
 
 
-//import tasks from database (tratamento de excepção no controller)
+//import tasks from database (exceptions in controller)
 export const getAllTasksDb = async () => {
 
 

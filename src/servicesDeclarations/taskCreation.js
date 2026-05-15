@@ -1,7 +1,7 @@
 import {db} from "../db.js"
 
 
-//Função criar nova tarefa (parametros obrigatório: nome tarefa)
+//Create new tasks (mandatory parameters name)
  export async function setTaskCreation(args) {
     console.log("💡 Executando função real da criação de tarefas...");
   try {
@@ -34,7 +34,7 @@ import {db} from "../db.js"
      }
 } 
 
-//guardar na BD as novas tarefas - retornar ID (permite criar tarefa e depois atualizar a mesma)
+//save new task in BD  - return id (allows to create and then update)
 async function saveTaskDb(task) {
   console.log("Estou a entrar na db para guardar task")
   const [result] = await db.query(
@@ -48,7 +48,7 @@ async function saveTaskDb(task) {
   };
 }
 
-//Caso haja tags (se duplicadas ignorar)
+//If there's tags - if duplicated ignore
 async function saveTagDb(task) {
 console.log("Estou a entrar na db para guardar tags")
 if (task.tags.length > 0) {
@@ -61,9 +61,9 @@ if (task.tags.length > 0) {
   }
 }
 
-//Extra ao SystemPrompt - já explicito tudo isto
+//Extra validations to SystemPrompt 
 
-//Validar nome - existe; não são só números, não é código, e tamanho
+//Validate task name eixts, length, no code and no numbers
 function validateName(name) {
   const clean = name.trim();
 
@@ -71,12 +71,12 @@ function validateName(name) {
     throw new Error ("Task can not be empty")
   }
 
-  //Não ser só números
+  //No numbers
   if (/^\d+$/.test(clean)) {
     throw new Error ("Task name cannot be just numbers")
   }
 
-  //Bloquear código
+  //Block code
   const codePatterns = [
     /```/,
     /def\s+\w+\s*\(/,
@@ -99,7 +99,7 @@ function validateName(name) {
 }
 
 
-//Validar que as prioridades são só estas
+//Validate priorities are this ones
 const priorities = ["Urgente", "Alta", "Normal", "Baixa"];
 
 function validatePriority(priority) {
