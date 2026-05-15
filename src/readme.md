@@ -11,7 +11,7 @@ Frontend: https://github.com/sararmpina-prog/Frontend_Gemini.git
 
 
 Modelos: gemini-2.5-flash (muito melhor) e gemini-3.1-flash-lite (mais permissivo)
-
+testes feitos
 
 Sucesso com modelo: gemini-2.5-flash
 1. Criar tarefa (uma só tarefa) (Fez 1 steps - 2º STEP [])
